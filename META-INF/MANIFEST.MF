@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: FlightCEPAdapter
+Bundle-SymbolicName: FlightCEPAdapter
+Bundle-Version: 1.0.0.qualifier
+Automatic-Module-Name: FlightCEPAdapter
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: Flights;bundle-version="0.1.0",
+ FlightGTCEP;bundle-version="1.0.0"
