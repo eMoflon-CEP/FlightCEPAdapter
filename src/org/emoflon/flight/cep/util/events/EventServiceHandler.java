@@ -3,13 +3,14 @@ package org.emoflon.flight.cep.util.events;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import FlightGTCEP.api.matches.FlightMatch;
-import FlightGTCEP.api.matches.PlaneMatch;
-import FlightGTCEP.api.matches.TravelHasConnectingFlightMatch;
-
 import com.apama.event.Event;
 import com.apama.services.event.EventServiceFactory;
 import com.apama.services.event.IEventService;
+
+import FlightGTCEP.api.matches.ConnectingFlightAlternativeMatch;
+import FlightGTCEP.api.matches.FlightMatch;
+import FlightGTCEP.api.matches.TravelHasConnectingFlightMatch;
+import FlightGTCEP.api.matches.TravelWithFlightMatch;
 
 class ThreadSender extends Thread {
 	private String host;
@@ -100,27 +101,36 @@ public class EventServiceHandler {
 	public void sendMatchEvent(FlightMatch match) {
 		sendEvent(
 				"FlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getFlight().getArrival()
-						+ "," + match.getFlight().getDeparture() + "," + match.getRoute().getDuration() + "," +match.getPlane().getID() + "\")");
+						+ "," + match.getFlight().getDeparture() + "," + match.getRoute().getDuration() + ")");
 	}
 	public void sendMatchRemovedEvent(FlightMatch match) {
 		sendEvent("FlightRemovedEvent" + "(\"" + match.getFlight().getID() + "\")");
 	}
-	public void sendMatchEvent(PlaneMatch match) {
-		sendEvent("PlaneMatchEvent" + "(\"" + match.getPlane().getID() + "\","
-				+ match.getPlane().getCapacity() + ")");
+	public void sendMatchEvent(TravelWithFlightMatch match) {
+		sendEvent(
+				"TravelWithFlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getPlane().getCapacity() + ")");
 	}
-	public void sendMatchRemovedEvent(PlaneMatch match) {
-		sendEvent("PlaneRemovedEvent" + "(\"" + match.getPlane().getID() + "\")");
+	public void sendMatchRemovedEvent(TravelWithFlightMatch match) {
+		sendEvent("TravelWithFlightMatchRemovedEvent" + "(\"" + match.getFlight().getID() + "\")");
 	}
 	public void sendMatchEvent(TravelHasConnectingFlightMatch match) {
 		sendEvent("TravelHasConnectingFlightMatchEvent" + "(\"" + match.getTravel().getID() + "\",\""
-				+ match.getConnectingFlight().getID() + "\",\"" + match.getFlight().getID() + "\",\"" + match.getConnectingFlight().getDeparture() + ","
+				+ match.getConnectingFlight().getID() + "\",\"" + match.getFlight().getID() + "\"," + match.getConnectingFlight().getDeparture() + ","
 				+ match.getFlight().getArrival() + "," + match.getArrivalGate().getPosition() + ","
 				+ match.getDepartingGate().getPosition() + "," + match.getTransitAirport().getSize() + ")");
 	}
 	public void sendMatchRemovedEvent(TravelHasConnectingFlightMatch match) {
 		sendEvent("TravelHasConnectingFlightMatchRemovedEvent" + "(\"" + match.getTravel().getID() + "\",\""
 				+ match.getConnectingFlight().getID() + "\")");
+	}
+	public void sendMatchEvent(ConnectingFlightAlternativeMatch match) {
+		sendEvent("ConnectingFlightAlternativeMatchEvent" + "(\"" + match.getConnectingFlight().getID() + "\",\""
+				+ match.getReplacementFlight().getID() + "\",\"" + match.getFlight().getID() + "\"," + match.getReplacementFlight().getDeparture() + ","
+				+ match.getReplacementFlight().getArrival() + "," + match.getReplacementDepartingGate().getPosition() + ")");
+	}
+	public void sendMatchRemovedEvent(ConnectingFlightAlternativeMatch match) {
+		sendEvent("ConnectingFlightAlternativeMatchRemovedEvent" + "(\"" + match.getTravel().getID() + "\",\""
+				+ match.getConnectingFlight().getID() + "\",\"" + match.getConnectingFlight().getID() + "\")");
 	}
 
 }
