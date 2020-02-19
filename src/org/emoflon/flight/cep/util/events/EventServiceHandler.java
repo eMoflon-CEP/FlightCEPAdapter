@@ -26,7 +26,7 @@ class ThreadSender extends Thread {
 		this.eventProcessTyp = eventProcessTyp;
 		eventStrings = new LinkedBlockingQueue<String>();
 	}
-	
+
 	public synchronized void sendEventString(String eventString) {
 		eventStrings.add(eventString);
 		if (idle) {
@@ -34,6 +34,7 @@ class ThreadSender extends Thread {
 			this.interrupt();
 		}
 	}
+
 	public synchronized void close() {
 		open = false;
 		if (idle) {
@@ -81,14 +82,16 @@ public class EventServiceHandler {
 		sender = new ThreadSender(host, port, eventProcessTyp);
 		sender.start();
 	}
-	
+
 	public long getEventsSend() {
 		return eventsSend;
 	}
+
 	public void sendEvent(String eventString) {
 		sender.sendEventString(eventString);
 		eventsSend++;
 	}
+
 	public void closeSocket() {
 		sender.close();
 		try {
@@ -97,37 +100,46 @@ public class EventServiceHandler {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void sendMatchEvent(FlightMatch match) {
-		sendEvent(
-				"FlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getFlight().getArrival()
-						+ "," + match.getFlight().getDeparture() + "," + match.getRoute().getDuration() + ")");
+		sendEvent("FlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getFlight().getArrival() + ","
+				+ match.getFlight().getDeparture() + "," + match.getRoute().getDuration() + ")");
 	}
+
 	public void sendMatchRemovedEvent(FlightMatch match) {
 		sendEvent("FlightRemovedEvent" + "(\"" + match.getFlight().getID() + "\")");
 	}
+
 	public void sendMatchEvent(TravelWithFlightMatch match) {
-		sendEvent(
-				"TravelWithFlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getPlane().getCapacity() + ")");
+		sendEvent("TravelWithFlightMatchEvent" + "(\"" + match.getFlight().getID() + "\","
+				+ match.getPlane().getCapacity() + ")");
 	}
+
 	public void sendMatchRemovedEvent(TravelWithFlightMatch match) {
 		sendEvent("TravelWithFlightMatchRemovedEvent" + "(\"" + match.getFlight().getID() + "\")");
 	}
+
 	public void sendMatchEvent(TravelHasConnectingFlightMatch match) {
 		sendEvent("TravelHasConnectingFlightMatchEvent" + "(\"" + match.getTravel().getID() + "\",\""
-				+ match.getConnectingFlight().getID() + "\",\"" + match.getFlight().getID() + "\"," + match.getConnectingFlight().getDeparture() + ","
-				+ match.getFlight().getArrival() + "," + match.getArrivalGate().getPosition() + ","
-				+ match.getDepartingGate().getPosition() + "," + match.getTransitAirport().getSize() + ")");
+				+ match.getConnectingFlight().getID() + "\",\"" + match.getFlight().getID() + "\","
+				+ match.getConnectingFlight().getDeparture().getTime() + "," + match.getFlight().getArrival().getTime()
+				+ "," + match.getArrivalGate().getPosition() + "," + match.getDepartingGate().getPosition() + ","
+				+ match.getTransitAirport().getSize() + ")");
 	}
+
 	public void sendMatchRemovedEvent(TravelHasConnectingFlightMatch match) {
 		sendEvent("TravelHasConnectingFlightMatchRemovedEvent" + "(\"" + match.getTravel().getID() + "\",\""
 				+ match.getConnectingFlight().getID() + "\")");
 	}
+
 	public void sendMatchEvent(ConnectingFlightAlternativeMatch match) {
 		sendEvent("ConnectingFlightAlternativeMatchEvent" + "(\"" + match.getConnectingFlight().getID() + "\",\""
-				+ match.getReplacementFlight().getID() + "\",\"" + match.getFlight().getID() + "\"," + match.getReplacementFlight().getDeparture() + ","
-				+ match.getReplacementFlight().getArrival() + "," + match.getReplacementDepartingGate().getPosition() + ")");
+				+ match.getReplacementFlight().getID() + "\",\"" + match.getFlight().getID() + "\","
+				+ match.getReplacementFlight().getDeparture().getTime() + ","
+				+ match.getReplacementFlight().getArrival().getTime() + ","
+				+ match.getReplacementDepartingGate().getPosition() + ")");
 	}
+
 	public void sendMatchRemovedEvent(ConnectingFlightAlternativeMatch match) {
 		sendEvent("ConnectingFlightAlternativeMatchRemovedEvent" + "(\"" + match.getTravel().getID() + "\",\""
 				+ match.getConnectingFlight().getID() + "\",\"" + match.getConnectingFlight().getID() + "\")");
