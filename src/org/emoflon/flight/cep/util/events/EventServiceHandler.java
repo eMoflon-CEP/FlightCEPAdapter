@@ -3,12 +3,20 @@ package org.emoflon.flight.cep.util.events;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.apama.EngineException;
 import com.apama.event.Event;
+import com.apama.event.parser.EventType;
+import com.apama.event.parser.FieldTypes;
+import com.apama.services.event.EventServiceException;
 import com.apama.services.event.EventServiceFactory;
 import com.apama.services.event.IEventService;
+import com.apama.services.event.IEventServiceChannel;
+import com.apama.services.event.IResponseWrapper;
+import com.apama.services.event.ResponseTimeoutException;
 
 import FlightGTCEP.api.matches.ConnectingFlightAlternativeMatch;
 import FlightGTCEP.api.matches.FlightMatch;
+import FlightGTCEP.api.matches.FlightWithArrivalMatch;
 import FlightGTCEP.api.matches.TravelHasConnectingFlightMatch;
 import FlightGTCEP.api.matches.TravelWithFlightMatch;
 
@@ -51,7 +59,7 @@ class ThreadSender extends Thread {
 				// try-with-resources block
 				final IEventService eventService = EventServiceFactory.createEventService(host, port,
 						eventProcessTyp);) {
-			while (open) {
+			while (open || !eventStrings.isEmpty()) {
 				try {
 					idle = true;
 					Thread.sleep(100000);
@@ -59,10 +67,12 @@ class ThreadSender extends Thread {
 					// TODO Auto-generated catch block
 					// e.printStackTrace();
 				}
+				idle = false;
 				while (!eventStrings.isEmpty()) {
 					Event matchEvent = new Event(eventStrings.poll());
 					try {
 						eventService.sendEvent(matchEvent);
+						System.out.println(matchEvent);
 						// System.out.println("Thread queue size: "+ eventStrings.size());
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -74,13 +84,47 @@ class ThreadSender extends Thread {
 }
 
 public class EventServiceHandler {
+	public enum ServiceLevel {
+		Error,
+		Info,
+		Test,
+		Debug
+	}
+
 	private static final String eventProcessTyp = "eMoflonPatternMatch";
 	private long eventsSend = 0;
 	private ThreadSender sender;
+	private ServiceLevel serviceLevel;
+	private String host;
+	private int port;
+	
+	static final EventType DELAYEDCF_REQUEST = new EventType("RequestDelayedConnectingFlights",
+			FieldTypes.INTEGER.newField(IEventServiceChannel.DEFAULT_MESSAGEID_FIELD_NAME)
+			);
+	
+	static final EventType DELAYEDCF_RESPONSE = new EventType("SendDelayedConnectingFlights",
+			FieldTypes.INTEGER.newField(IEventServiceChannel.DEFAULT_MESSAGEID_FIELD_NAME),  // field required for using requestResponse() call
+			FieldTypes.INTEGER.newField("delayedConnectingFlights")
+			);
+	
+	static final EventType WORKINGCF_REQUEST = new EventType("RequestWorkingConnectingFlights",
+			FieldTypes.INTEGER.newField(IEventServiceChannel.DEFAULT_MESSAGEID_FIELD_NAME)
+			);
+	
+	static final EventType WORKINGCF_RESPONSE = new EventType("SendWorkingConnectingFlights",
+			FieldTypes.INTEGER.newField(IEventServiceChannel.DEFAULT_MESSAGEID_FIELD_NAME),  // field required for using requestResponse() call
+			FieldTypes.INTEGER.newField("workingConnectingFlights")
+			);
+	
 
-	public EventServiceHandler(String host, int port) {
+	public EventServiceHandler(String host, int port, ServiceLevel serviceLevel) {
 		sender = new ThreadSender(host, port, eventProcessTyp);
+		this.serviceLevel = serviceLevel;
 		sender.start();
+		this.host = host;
+		this.port = port;
+		
+		if(this.serviceLevel==ServiceLevel.Test) sendServiceLevel();
 	}
 
 	public long getEventsSend() {
@@ -91,6 +135,80 @@ public class EventServiceHandler {
 		sender.sendEventString(eventString);
 		eventsSend++;
 	}
+	
+	public long requestDelayedConnectingFlights() {
+		try
+		(
+			// get a IEventService instance from the EventServiceFactory
+			// IEventService.close() will automatically get called upon exiting the try-with-resources block
+			IEventService eventService = EventServiceFactory.createEventService(host, port, "RequestResponseChannel");
+		) {
+			// Create the channel on "eventService.sample.channel"
+			String[] channels = {"eMoflonPatternMatch","eMoflonTalkback"};
+			IEventServiceChannel ourChannel = eventService.addChannel(channels, null);
+			
+			// Register the RequestEventType to the channel
+			ourChannel.registerEventType(DELAYEDCF_REQUEST);
+			
+			// Create the requestEvent
+			Event requestEvent = new Event("RequestDelayedConnectingFlights(0)");
+			try
+			(
+				// IResponseWrapper.close() will automatically get called upon exiting the try-with-resources block
+				// which in turns calls IResponseWrapper.releaseLock (which must be released after a response is received)
+				IResponseWrapper responseWrapper = ourChannel.requestResponse(requestEvent, DELAYEDCF_RESPONSE);
+			) {
+				// print the response event
+				System.out.println(responseWrapper.getEvent());
+				return (long) responseWrapper.getEvent().getField("delayedConnectingFlights");
+				
+			} catch (ResponseTimeoutException e) {
+				e.printStackTrace();
+			} catch (EngineException e) {
+				e.printStackTrace();
+			} catch (EventServiceException e) {
+				e.printStackTrace();
+			}
+		}
+		return 0;
+	}
+	
+	public long requestWorkingConnectingFlights() {
+		try
+		(
+			// get a IEventService instance from the EventServiceFactory
+			// IEventService.close() will automatically get called upon exiting the try-with-resources block
+			IEventService eventService = EventServiceFactory.createEventService(host, port, "RequestResponseChannel");
+		) {
+			// Create the channel on "eventService.sample.channel"
+			String[] channels = {"eMoflonPatternMatch","eMoflonTalkback"};
+			IEventServiceChannel ourChannel = eventService.addChannel(channels, null);
+			
+			// Register the RequestEventType to the channel
+			ourChannel.registerEventType(WORKINGCF_REQUEST);
+			
+			// Create the requestEvent
+			Event requestEvent = new Event("RequestWorkingConnectingFlights(0)");
+			try
+			(
+				// IResponseWrapper.close() will automatically get called upon exiting the try-with-resources block
+				// which in turns calls IResponseWrapper.releaseLock (which must be released after a response is received)
+				IResponseWrapper responseWrapper = ourChannel.requestResponse(requestEvent, WORKINGCF_RESPONSE);
+			) {
+				// print the response event
+				System.out.println(responseWrapper.getEvent());
+				return (long) responseWrapper.getEvent().getField("workingConnectingFlights");
+				
+			} catch (ResponseTimeoutException e) {
+				e.printStackTrace();
+			} catch (EngineException e) {
+				e.printStackTrace();
+			} catch (EventServiceException e) {
+				e.printStackTrace();
+			}
+		}
+		return 0;
+	}
 
 	public void closeSocket() {
 		sender.close();
@@ -100,14 +218,23 @@ public class EventServiceHandler {
 			e.printStackTrace();
 		}
 	}
+	
+	private void sendServiceLevel() {
+		sendEvent("ServiceLevel(\"" + serviceLevel + "\")");
+	}
 
 	public void sendMatchEvent(FlightMatch match) {
-		sendEvent("FlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getFlight().getArrival() + ","
-				+ match.getFlight().getDeparture() + "," + match.getRoute().getDuration() + ")");
+		sendEvent("FlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getFlight().getArrival().getTime() + ","
+				+ match.getFlight().getDeparture().getTime() + "," + match.getRoute().getDuration() + ")");
 	}
 
 	public void sendMatchRemovedEvent(FlightMatch match) {
 		sendEvent("FlightRemovedEvent" + "(\"" + match.getFlight().getID() + "\")");
+	}
+	
+	public void sendMatchEvent(FlightWithArrivalMatch match) {
+		sendEvent("FlightMatchEvent" + "(\"" + match.getFlight().getID() + "\"," + match.getFlight().getArrival().getTime() + ","
+				+ match.getFlight().getDeparture().getTime() + "," + match.getRoute().getDuration() + ")");
 	}
 
 	public void sendMatchEvent(TravelWithFlightMatch match) {
@@ -137,7 +264,7 @@ public class EventServiceHandler {
 				+ match.getReplacementFlight().getID() + "\",\"" + match.getFlight().getID() + "\","
 				+ match.getReplacementFlight().getDeparture().getTime() + ","
 				+ match.getReplacementFlight().getArrival().getTime() + ","
-				+ match.getReplacementDepartingGate().getPosition() + ")");
+				+ match.getReplacementFlight().getSrc().getPosition() + ")");
 	}
 
 	public void sendMatchRemovedEvent(ConnectingFlightAlternativeMatch match) {
