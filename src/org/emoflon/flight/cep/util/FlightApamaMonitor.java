@@ -26,9 +26,9 @@ public class FlightApamaMonitor extends FlightMonitor {
 	}
 
 	private void init() {
-		eventService = new EventServiceHandler("localhost", 15903, ServiceLevel.Test);
 		issues = Collections.synchronizedMap(new LinkedHashMap<>());
 		solutions = Collections.synchronizedMap(new LinkedHashMap<>());
+		eventService = new EventServiceHandler("localhost", 15903, ServiceLevel.Test, issues, solutions);
 
 		issueMessages = new LinkedBlockingQueue<>();
 		infoMessages = new LinkedBlockingQueue<>();

@@ -11,6 +11,8 @@ import FlightGTCEP.api.matches.FlightMatch;
 import FlightGTCEP.api.matches.FlightWithArrivalMatch;
 import FlightGTCEP.api.matches.TravelHasConnectingFlightMatch;
 import FlightGTCEP.api.matches.TravelWithFlightMatch;
+import flight.monitor.FlightIssueEvent;
+import flight.monitor.FlightSolutionEvent;
 
 public class EventServiceHandler {
 	public enum ServiceLevel {
@@ -32,15 +34,23 @@ public class EventServiceHandler {
 	private ServiceLevel serviceLevel;
 	@SuppressWarnings("rawtypes")
 	protected Map<Long, GraphTransformationMatch> matches;
+	@SuppressWarnings("rawtypes")
+	private Map<GraphTransformationMatch, FlightIssueEvent<GraphTransformationMatch>> issues;
+	@SuppressWarnings("rawtypes")
+	private Map<FlightIssueEvent<GraphTransformationMatch>, FlightSolutionEvent<GraphTransformationMatch, GraphTransformationMatch>> solutions;
 
 	
 
-	public EventServiceHandler(String host, int port, ServiceLevel serviceLevel) {
+	public EventServiceHandler(String host, int port, ServiceLevel serviceLevel,
+			@SuppressWarnings("rawtypes") Map<GraphTransformationMatch, FlightIssueEvent<GraphTransformationMatch>> issues,
+			@SuppressWarnings("rawtypes") Map<FlightIssueEvent<GraphTransformationMatch>, FlightSolutionEvent<GraphTransformationMatch, GraphTransformationMatch>> solutions) {
 		sender = new ThreadSender(host, port, eventProcessTyp);
 		requester = new Requester(host, port, requestChannels, requestProcessTyp);
-		//receiver = new Receiver(host, port, receiveChannels, receiveProcessTyp, matches);
 		this.serviceLevel = serviceLevel;
 		matches = Collections.synchronizedMap(new LinkedHashMap<>());
+		this.issues = issues;
+		this.solutions = solutions;
+		receiver = new Receiver(host, port, receiveChannels, receiveProcessTyp, matches, this.issues, this.solutions);
 		sender.start();
 		
 		if(this.serviceLevel==ServiceLevel.Test) sendServiceLevel();
@@ -65,6 +75,7 @@ public class EventServiceHandler {
 	}
 
 	public void closeSocket() {
+		receiver.terminate();
 		sender.close();
 		try {
 			sender.join();
