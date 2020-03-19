@@ -40,8 +40,8 @@ public class FlightApamaMonitor extends FlightMonitor {
 		api.flight().subscribeAppearing(eventService::sendMatchEvent);
 		api.flight().subscribeDisappearing(eventService::sendMatchRemovedEvent);
 		api.flightWithArrival().subscribeAppearing(eventService::sendMatchEvent);
-		api.travelWithFlight().subscribeAppearing(eventService::sendMatchEvent);
-		api.travelWithFlight().subscribeDisappearing(eventService::sendMatchRemovedEvent);
+//		api.travelWithFlight().subscribeAppearing(eventService::sendMatchEvent);
+//		api.travelWithFlight().subscribeDisappearing(eventService::sendMatchRemovedEvent);
 		api.travelHasConnectingFlight().subscribeAppearing(eventService::sendMatchEvent);
 		api.travelHasConnectingFlight().subscribeDisappearing(eventService::sendMatchRemovedEvent);
 		api.connectingFlightAlternative().subscribeAppearing(eventService::sendMatchEvent);
