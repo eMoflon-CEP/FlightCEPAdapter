@@ -60,7 +60,7 @@ public class Requester {
 				IResponseWrapper responseWrapper = requestChannel.requestResponse(requestEvent, responseType);
 			) {
 				// print the response event
-				System.out.println(responseWrapper.getEvent());
+				System.out.println("[Requester]: " +responseWrapper.getEvent());
 				return responseWrapper.getEvent();	
 			} catch (ResponseTimeoutException e) {
 				e.printStackTrace();

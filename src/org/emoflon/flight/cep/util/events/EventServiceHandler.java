@@ -75,6 +75,7 @@ public class EventServiceHandler {
 	}
 
 	public void closeSocket() {
+		System.out.println("[EventServiceHandler]: " + eventsSend + " Event(s) sent.");
 		receiver.terminate();
 		sender.close();
 		try {
