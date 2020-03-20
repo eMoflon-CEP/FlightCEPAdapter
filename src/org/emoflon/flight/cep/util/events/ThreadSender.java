@@ -59,7 +59,7 @@ public class ThreadSender extends Thread {
 					Event matchEvent = new Event(eventStrings.poll());
 					try {
 						eventService.sendEvent(matchEvent);
-						System.out.println(matchEvent);
+						//System.out.println("[ThreadSender]: " + matchEvent);
 						// System.out.println("Thread queue size: "+ eventStrings.size());
 					} catch (Exception e) {
 						e.printStackTrace();
