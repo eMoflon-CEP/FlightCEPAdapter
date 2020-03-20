@@ -7,16 +7,18 @@ import flight.monitor.FlightMonitor;
 
 public class FlightCEPMonitorDemo {
 	
+	
 	public static void main(String[] args) {
-		EvaluationScenarioRunner runner = new EvaluationScenarioRunner(5);
+		EvaluationScenarioRunner runner = new EvaluationScenarioRunner(10);
 		runner.initModel("../Flights/src/org/emoflon/flight/model/definitions");
 		runner.initModelEventGenerator(15, 12, 51, 0.01, 0.5);
-		runner.addFlightsAndBookings(4);
 		
 		FlightMonitor monitor = new FlightApamaMonitor();
 		monitor.initModelAndEngine(runner.getModel());
 		monitor.initMatchSubscribers();
 		monitor.update(true);
+//		runner.addFlightsAndBookings(2);
+//		monitor.update(true);
 
 		while(runner.advanceTime()) {
 			monitor.update(true);
