@@ -51,6 +51,7 @@ public class FlightApamaMonitor extends FlightMonitor {
 	@Override
 	public void update(boolean debug) {
 		api.updateMatches();
+		eventService.waitForResults();
 		// TODO: Debug messages?
 	}
 

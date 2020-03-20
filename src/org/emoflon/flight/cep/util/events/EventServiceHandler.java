@@ -64,6 +64,10 @@ public class EventServiceHandler {
 		sender.sendEventString(eventString);
 		eventsSend++;
 	}
+	
+	public void waitForResults() {
+		requester.waitForCompletion();
+	}
 
 	
 	public long requestWorkingConnectingFlights() {

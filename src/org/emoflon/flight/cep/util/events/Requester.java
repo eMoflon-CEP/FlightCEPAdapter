@@ -39,6 +39,13 @@ public class Requester {
 			FieldTypes.INTEGER.newField("workingConnectingFlights")
 			);
 	
+	static final EventType COMPLETION_REQUEST = new EventType("RequestCompletionEvent",
+			FieldTypes.INTEGER.newField(IEventServiceChannel.DEFAULT_MESSAGEID_FIELD_NAME)  // field required for using requestResponse() call
+			);
+	static final EventType COMPLETION_RESPONSE = new EventType("CompletionEvent",
+			FieldTypes.INTEGER.newField(IEventServiceChannel.DEFAULT_MESSAGEID_FIELD_NAME),  // field required for using requestResponse() call
+			FieldTypes.STRING.newField("reason")
+			);
 	
 	private Event request(Event requestEvent, EventType requestType, EventType responseType) {
 		try
@@ -79,5 +86,16 @@ public class Requester {
 	public long requestWorkingConnectingFlights() {
 		Event requestEvent = new Event("RequestWorkingConnectingFlights(0)");
 		return (long)request(requestEvent,WORKINGCF_REQUEST,WORKINGCF_RESPONSE).getField("workingConnectingFlights");
+	}
+	public void waitForCompletion() {
+		Event requestEvent = new Event("RequestCompletionEvent(0)");
+		Object msg = null;
+		long tick = System.currentTimeMillis();
+		while(msg == null) {
+			msg = request(requestEvent,COMPLETION_REQUEST,COMPLETION_RESPONSE);
+		}
+		long tock = System.currentTimeMillis();
+		double delta = (tock-tick)/1000.0;
+		System.err.println("Response: "+(String)((Event)msg).getField("reason")+". Waited for: "+delta+"s.");
 	}
 }
