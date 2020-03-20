@@ -5,7 +5,8 @@ Bundle-SymbolicName: FlightCEPAdapter
 Bundle-Version: 1.0.0.qualifier
 Automatic-Module-Name: FlightCEPAdapter
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Require-Bundle: ApamaDependencies;bundle-version="1.0.0",
+Require-Bundle: org.emoflon.ibex.gt;bundle-version="1.0.0",
+ ApamaDependencies;bundle-version="1.0.0",
  Flights;bundle-version="0.1.0",
  FlightGTCEP;bundle-version="1.0.0",
- org.emoflon.ibex.gt;bundle-version="1.0.0"
+ org.junit;bundle-version="4.12.0"
