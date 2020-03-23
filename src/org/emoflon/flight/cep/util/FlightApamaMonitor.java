@@ -38,7 +38,7 @@ public class FlightApamaMonitor extends FlightMonitor {
 	@Override
 	public void initMatchSubscribers() {
 		api.flight().subscribeAppearing(eventService::sendMatchEvent);
-		api.flight().subscribeDisappearing(eventService::sendMatchRemovedEvent);
+//		api.flight().subscribeDisappearing(eventService::sendMatchRemovedEvent);
 		api.flightWithArrival().subscribeAppearing(eventService::sendMatchEvent);
 //		api.travelWithFlight().subscribeAppearing(eventService::sendMatchEvent);
 //		api.travelWithFlight().subscribeDisappearing(eventService::sendMatchRemovedEvent);
@@ -51,8 +51,10 @@ public class FlightApamaMonitor extends FlightMonitor {
 	@Override
 	public void update(boolean debug) {
 		api.updateMatches();
+	}
+	
+	public void synch() {
 		eventService.waitForResults();
-		// TODO: Debug messages?
 	}
 
 	@Override
@@ -69,7 +71,7 @@ public class FlightApamaMonitor extends FlightMonitor {
 	public void shutdown() {
 		api.terminate();
 		eventService.closeSocket();
-		TestPause.waitForEnter();
+//		TestPause.waitForEnter();
 	}
 
 }

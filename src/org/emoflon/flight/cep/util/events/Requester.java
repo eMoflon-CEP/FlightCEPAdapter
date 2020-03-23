@@ -1,5 +1,8 @@
 package org.emoflon.flight.cep.util.events;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.apama.EngineException;
 import com.apama.event.Event;
 import com.apama.event.parser.EventType;
@@ -55,6 +58,10 @@ public class Requester {
 			IEventService eventService = EventServiceFactory.createEventService(host, port, processName);
 		) {
 			// Create the channel on "eventService.sample.channel"
+//			Map<String,Object> opts = new HashMap<>();
+//			opts.put(IEventServiceChannel.CONFIG_DEFAULT_REQUEST_RESPONSE_TIMEOUT, 10000);
+//			opts.put(IEventServiceChannel.PROP_DEFAULT_REQUEST_RESPONSE_TIMEOUT, 10000);
+			
 			IEventServiceChannel requestChannel = eventService.addChannel(channels, null);
 			
 			// Register the RequestEventType to the channel
@@ -70,7 +77,8 @@ public class Requester {
 				System.out.println("[Requester]: " +responseWrapper.getEvent());
 				return responseWrapper.getEvent();	
 			} catch (ResponseTimeoutException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
+				System.err.println("Request for " + requestType.getName() + " timed out (waited for > 3s). ");
 			} catch (EngineException e) {
 				e.printStackTrace();
 			} catch (EventServiceException e) {
@@ -88,14 +96,16 @@ public class Requester {
 		return (long)request(requestEvent,WORKINGCF_REQUEST,WORKINGCF_RESPONSE).getField("workingConnectingFlights");
 	}
 	public void waitForCompletion() {
-		Event requestEvent = new Event("RequestCompletionEvent(0)");
+		long initial =System.currentTimeMillis();
+		Event requestEvent = new Event("RequestCompletionEvent("+initial+")");
 		Object msg = null;
 		long tick = System.currentTimeMillis();
 		while(msg == null) {
 			msg = request(requestEvent,COMPLETION_REQUEST,COMPLETION_RESPONSE);
+			requestEvent = new Event("RequestCompletionEvent("+System.currentTimeMillis()+")");
 		}
 		long tock = System.currentTimeMillis();
 		double delta = (tock-tick)/1000.0;
-		System.err.println("Response: "+(String)((Event)msg).getField("reason")+". Waited for: "+delta+"s.");
+		System.err.println("Initial sending time: "+initial+",\nResponse: "+(String)((Event)msg).getField("reason")+". Waited for: "+delta+"s.");
 	}
 }

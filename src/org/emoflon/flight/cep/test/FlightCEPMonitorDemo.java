@@ -19,12 +19,18 @@ public class FlightCEPMonitorDemo {
 		monitor.update(true);
 //		runner.addFlightsAndBookings(2);
 //		monitor.update(true);
-
-		while(runner.advanceTime()) {
+		
+		int i = 0;
+		while(runner.advanceTime() &&  i < 20) {
 			monitor.update(true);
+			i++;
 		}
 		monitor.update(true);
+		((FlightApamaMonitor)monitor).synch();
 		
+		System.err.println("Broken connecting flights: " + monitor.getDelayedConnectingFlightTravels());
+		System.err.println("Working connecting flights: " + monitor.getWorkingConnectingFlightTravels());
+		System.err.println("Issues: " + monitor.getIssues().size());
 		monitor.shutdown();
 	}
 }
