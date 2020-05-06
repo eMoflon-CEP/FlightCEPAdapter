@@ -15,6 +15,7 @@ public class ApamaAPITest {
 	public static void main(String[] args) {
 		
 		ProcessThread tr = new ProcessThread("C:\\SoftwareAG\\Apama\\bin\\correlator.exe");
+//		ProcessThread tr = new ProcessThread("C:\\SoftwareAG\\Apama\\bin\\correlator.exe", "C:\\Users\\Public\\SoftwareAG\\ApamaWork_9.12\\license\\ApamaServerLicense.xml", 15903);
 		
 		tr.start();
 		
@@ -59,18 +60,35 @@ public class ApamaAPITest {
 
 class ProcessThread extends Thread {
 	private Process pr = null;
-	private String execPath;
+	private String[] execArgs;
 	private boolean running = true;
 	
 	public ProcessThread(String execPath) {
-		this.execPath = execPath;
+		execArgs = new String[1];
+		this.execArgs[0] = execPath;
+	}
+	
+	public ProcessThread(String execPath, int port) {
+		execArgs = new String[3];
+		this.execArgs[0] = execPath;
+		this.execArgs[1] = "-p";
+		this.execArgs[2] = ""+port;
+	}
+	
+	public ProcessThread(String execPath, String licensePath, int port) {
+		execArgs = new String[5];
+		this.execArgs[0] = execPath;
+		this.execArgs[1] = "-p";
+		this.execArgs[2] = ""+port;
+		this.execArgs[3] = "-l";
+		this.execArgs[4] = licensePath;
 	}
 	@Override
 	public void run() {
 		Runtime runtime = Runtime.getRuntime();     //getting Runtime object
 		try
 		{
-			pr = runtime.exec(execPath);        //opens new notepad instance
+			pr = runtime.exec(execArgs);        //opens new notepad instance
 			System.out.println("Running: " + pr.toString()+" status: "+pr.isAlive());
 			
 			BufferedReader stdInput = new BufferedReader(new 
@@ -78,20 +96,20 @@ class ProcessThread extends Thread {
 
 				BufferedReader stdError = new BufferedReader(new 
 				     InputStreamReader(pr.getErrorStream()));
-				while(running) {
+				while(running && pr.isAlive()) {
 					// Read the output from the command
-					System.out.println("***APAMA-PROCRESS Output:\n");
 					String s = null;
 					while ((s = stdInput.readLine()) != null) {
 					    System.out.println(s);
 					}
 
 					// Read any errors from the attempted command
-					System.out.println("***APAMA-PROCRESS Errors:\n");
 					while ((s = stdError.readLine()) != null) {
 					    System.out.println(s);
 					}
 				}
+				
+				close();
 				
 		}
 		catch (IOException e)
@@ -100,7 +118,11 @@ class ProcessThread extends Thread {
 		}
 	}
 	
-	public void close() {
+	public synchronized void close() {
+		if(!pr.isAlive()) {
+			running = false;
+			return;
+		}
 		System.out.println("Killing: "+pr.toString()+" status: "+pr.isAlive());
 		pr.destroy();
 		System.out.println("Exited with: "+pr.exitValue());
