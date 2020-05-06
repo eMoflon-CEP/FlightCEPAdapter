@@ -73,7 +73,7 @@ class IssueListener implements IEventListener {
 		Long issueMatchID = (long) arg0.getField("issueMatchID");
 		GraphTransformationMatch issueMatch = matches.get(issueMatchID);
 		String description = (String) arg0.getField("description");
-		System.out.println("[Receiver]: " + "Found Issue[" + issueMatchID +"]"  );
+//		System.out.println("[Receiver]: " + "Found Issue[" + issueMatchID +"]"  );
 		if(issues.containsKey(issueMatch))
 			return;
 		issues.put(issueMatch, new FlightIssueEvent<GraphTransformationMatch>(issueMatch, description));
@@ -104,7 +104,7 @@ class RemoveIssueListener implements IEventListener {
 	@SuppressWarnings("rawtypes")
 	public void handleEvent(Event arg0) {
 		Long issueMatchID = (long) arg0.getField("issueMatchID");
-		System.out.println("[Receiver]: " + "Found Issue[" + issueMatchID +"]"  );
+//		System.out.println("[Receiver]: " + "Found Issue[" + issueMatchID +"]"  );
 		GraphTransformationMatch issueMatch = matches.get(issueMatchID);
 		FlightIssueEvent<GraphTransformationMatch> issue = issues.remove(issueMatch);
 		if(issue != null && solutions.containsKey(issue)) {
@@ -140,7 +140,7 @@ class SolutionListener implements IEventListener {
 		Long issueMatchID = (long) arg0.getField("issueMatchID");
 		String description = (String) arg0.getField("description");
 		
-		System.out.println("[Receiver]: " + "Found Solution[" + solutionMatchID +"] for Issue[" + issueMatchID + "]"  );
+//		System.out.println("[Receiver]: " + "Found Solution[" + solutionMatchID +"] for Issue[" + issueMatchID + "]"  );
 		
 		GraphTransformationMatch solutionMatch = matches.get(solutionMatchID);
 		GraphTransformationMatch issueMatch = matches.get(issueMatchID);
@@ -180,7 +180,7 @@ class RemoveSolutionListener implements IEventListener {
 	public void handleEvent(Event arg0) {;
 		Long matchID = (long) arg0.getField("issueMatchID");
 		GraphTransformationMatch issueMatch = matches.get(matchID);
-		System.out.println("[Receiver]: " +"Remove Solution[" + matchID + "]" );
+//		System.out.println("[Receiver]: " +"Remove Solution[" + matchID + "]" );
 		FlightIssueEvent<GraphTransformationMatch> issue = issues.get(issueMatch);
 		if(issue != null && solutions.containsKey(issue)) {
 			solutions.remove(issue);
